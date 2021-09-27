@@ -1,29 +1,4 @@
-# vue2-components-better-scroll
 
-## Project setup
-```
-npm install
-```
+# vue2-components
+写一些工作日常需要的组件
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Run your unit tests
-```
-npm run test:unit
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
