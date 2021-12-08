@@ -4,15 +4,15 @@ import { on, off, preventDefault } from '@/helpers/event'
 import { getScroller, isHidden } from '@/helpers/dom'
 import './index.scss'
 
-const DEFAULT_BOTTOM_HEIGHT = 50
+const OFFSET_HEIGHT = 50
 export default {
   name: 'pull-change',
   mixins: [TouchMixin],
 
   props: {
-    bottomHeight: {
+    offset: {
       type: [Number, String],
-      default: DEFAULT_BOTTOM_HEIGHT
+      default: OFFSET_HEIGHT
     },
     disabled: {
       type: Boolean,
@@ -29,15 +29,6 @@ export default {
       duration: 0,
       distance: 0,
       isReachEdge: false
-    }
-  },
-  computed: {
-    bottomStyle ({ bottomHeight }) {
-      if (bottomHeight !== DEFAULT_BOTTOM_HEIGHT) {
-        return {
-          height: `${bottomHeight}px`
-        }
-      }
     }
   },
   mounted () {
@@ -59,6 +50,7 @@ export default {
   methods: {
     check () {
       const { $el: el, scroller } = this
+
       let scrollerRect
       if (scroller.getBoundingClientRect) {
         scrollerRect = scroller.getBoundingClientRect()
@@ -74,11 +66,11 @@ export default {
         return false
       }
       const bottomRect = this.$refs.bottom.getBoundingClientRect()
-      // console.log(bottomRect.bottom, scrollerRect.bottom)
-      this.isReachEdge = bottomRect.bottom - scrollerRect.bottom === this.bottomHeight
+
+      this.isReachEdge = bottomRect.bottom === scrollerRect.bottom
     },
     ease (distance) {
-      const pullDistance = this.bottomHeight
+      const pullDistance = this.offset
 
       if (distance > pullDistance) {
         if (distance < pullDistance * 2) {
@@ -92,8 +84,7 @@ export default {
     },
     setStatus (distance) {
       this.distance = distance
-      console.log(distance, this.bottomHeight)
-      this.status = distance < this.bottomHeight
+      this.status = distance < this.offset
         ? 'pulling'
         : 'loosing'
     },
@@ -130,8 +121,6 @@ export default {
         console.log(this.status)
         if (this.status === 'loosing') {
           this.setStatus(0)
-          this.$emit('input', true)
-
           // ensure value change can be watched
           this.$nextTick(() => {
             this.$emit('refresh')
@@ -160,7 +149,7 @@ export default {
       <div class="wrapper">
         <div ref='track' class='track' style={trackStyle}>
           {this.$slots.default}
-          <div ref='bottom' class="bottom" style={this.bottomStyle}>
+          <div ref='bottom' class="bottom">
           </div>
         </div>
       </div>

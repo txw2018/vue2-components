@@ -16,7 +16,7 @@
                 >{{ item.name }}</li>
               </ul>
             </van-sticky>
-         <PullChange :disabled="disabled">
+         <PullChange :disabled="disabled"  @refresh="nextTab">
 
             <van-list v-model="currentList.loading" :finished="currentList.finished" :finished-text="currentList.finishedText" @load="onLoad">
               <van-cell v-for="item in currentList.list" :key="item" :title="item" />
@@ -127,7 +127,7 @@ export default {
   },
   methods: {
     scrollFn () {
-      console.log(this.scroller.scrollTop)
+      // console.log(this.scroller.scrollTop)
     },
     bindEvent () {
       console.log(this.scroller)
@@ -160,6 +160,9 @@ export default {
           currentList.finished = true
         }
       }, 1000)
+    },
+    nextTab () {
+
     },
     tabChange (index) {
       this.currentIndex = index
