@@ -1,37 +1,30 @@
 <template>
   <div class="tab">
     <header>666</header>
-    <section>
-      <div class="content">
-        <div class="other"></div>
-        <div class="list-wrap">
-          <ul class="tab-wrap">
-            <li
-              :class="{ active: index === current }"
-              v-for="(item, index) in list"
-              :key="index"
-              @click="tabChange(index)"
-            >
-              {{ item.name }}
-            </li>
-          </ul>
-          <van-swipe
-            ref="swipeRef"
-            @change="onChange"
-            :loop="false"
-            class="my-swipe"
-            indicator-color="white"
-          >
-            <van-swipe-item v-for="(item, index) in list" :key="index">
-              <list
-                v-model="item.loading"
-                :finished="item.finished"
-                @load="load"
-                :data="item.list"
-              ></list>
-            </van-swipe-item>
-          </van-swipe>
-        </div>
+    <section ref="scrollRef">
+      <div class="content" >
+        <van-pull-refresh v-model="isLoading" @refresh="onRefresh">
+         <div class="other"></div>
+          <div class="list-wrap">
+            <van-sticky :offset-top="60">
+              <ul class="tab-wrap">
+                <li
+                  :class="{ active: index === currentIndex }"
+                  v-for="(item, index) in list"
+                  :key="index"
+                  @click="tabChange(index)"
+                >{{ item.name }}</li>
+              </ul>
+            </van-sticky>
+         <PullChange :disabled="disabled">
+
+            <van-list v-model="currentList.loading" :finished="currentList.finished" :finished-text="currentList.finishedText" @load="onLoad">
+              <van-cell v-for="item in currentList.list" :key="item" :title="item" />
+            </van-list>
+         </PullChange>
+
+          </div>
+        </van-pull-refresh>
       </div>
     </section>
     <footer></footer>
@@ -41,16 +34,22 @@
 <script>
 // @ is an alias to /src
 import Vue from 'vue'
-import { Swipe, SwipeItem } from 'vant'
-import List from '@/components/list/list.vue'
-Vue.use(Swipe)
-Vue.use(SwipeItem)
+import PullChange from '@/components/pull-change/index'
+import { PullRefresh, Toast, List, Cell, Sticky } from 'vant'
+import { on, off } from '@/helpers/event'
+
+Vue.use(PullRefresh)
+Vue.use(Toast)
+Vue.use(List)
+Vue.use(Cell)
+Vue.use(Sticky)
 const dataTab = [
   {
     name: '特价',
     finished: false,
     loading: false,
     list: [],
+    finishedText: '继续上拉切换下一个促销场次',
     pos: 0
   },
   {
@@ -58,6 +57,7 @@ const dataTab = [
     finished: false,
     loading: false,
     list: [],
+    finishedText: '继续上拉切换下一个促销场次',
     pos: 0
   },
   {
@@ -65,6 +65,7 @@ const dataTab = [
     finished: false,
     loading: false,
     list: [],
+    finishedText: '继续上拉切换下一个促销场次',
     pos: 0
   },
   {
@@ -72,32 +73,78 @@ const dataTab = [
     finished: false,
     loading: false,
     list: [],
+    finishedText: '没有更多商品了',
     pos: 0
   }
 ]
 export default {
   name: 'Tab',
   components: {
-    List
+    PullChange
   },
   data () {
     return {
       list: [],
-      current: 0
+      currentIndex: 0,
+      count: 0,
+      isLoading: false,
+      loading: false,
+      finished: false,
+      scrollY: 0
     }
   },
   created () {
     this.list = dataTab
     this.list.forEach((item) => {
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 20; i++) {
         item.list.push(item.list.length + 1 + item.name)
       }
     })
   },
+  mounted () {
+    this.scroller = this.$refs.scrollRef
+    this.bindEvent()
+  },
+  watch: {
+    currentIndex (newTab, oldTab) {
+      this.list[oldTab].pos = this.scrollY // 储存旧的scrollY
+      // const memoryPos = this.tabProductData[newTab].pos
+      // let keyPos
+      // if (this.scrollY >= offsetTop) {
+      //   keyPos = Math.max(memoryPos, offsetTop)
+      // } else {
+      //   keyPos = this.scrollY
+      // }
+    }
+  },
+  computed: {
+    currentList () {
+      return this.list[this.currentIndex]
+    },
+    disabled () {
+      return !this.currentList.finished
+    }
+  },
   methods: {
-    load () {
-      const currentList = this.list[this.current]
-      console.log(currentList)
+    scrollFn () {
+      console.log(this.scroller.scrollTop)
+    },
+    bindEvent () {
+      console.log(this.scroller)
+      on(this.scroller, 'scroll', this.scrollFn)
+    },
+    unBindEvent () {
+      off(this.scroller, 'scroll')
+    },
+    onRefresh () {
+      setTimeout(() => {
+        Toast('刷新成功')
+        this.isLoading = false
+        this.count++
+      }, 1000)
+    },
+    onLoad () {
+      const currentList = this.list[this.currentIndex]
       setTimeout(() => {
         if (currentList.finished === true) return
 
@@ -115,11 +162,10 @@ export default {
       }, 1000)
     },
     tabChange (index) {
-      this.current = index
-      this.$refs.swipeRef.swipeTo(index)
+      this.currentIndex = index
     },
     onChange (index) {
-      this.current = index
+      this.currentIndex = index
     }
   }
 }
@@ -137,11 +183,10 @@ export default {
     flex: 1;
     overflow: scroll;
     .other {
-      height: 500px;
+      height: 300px;
       background: blue;
     }
     .list-wrap {
-      height: calc(100vh - 120px);
       li {
         width: 25%;
         text-align: center;
@@ -150,14 +195,11 @@ export default {
         color: red;
       }
       .tab-wrap {
+        background-color: #fff;
         display: flex;
         justify-content: space-between;
         align-items: center;
         height: 50px;
-      }
-      .my-swipe {
-        height: calc(100% - 50px);
-        overflow-y: scroll;
       }
     }
   }

@@ -161,7 +161,6 @@ export default {
         <div ref='track' class='track' style={trackStyle}>
           {this.$slots.default}
           <div ref='bottom' class="bottom" style={this.bottomStyle}>
-              {this.genStatus()}
           </div>
         </div>
       </div>
