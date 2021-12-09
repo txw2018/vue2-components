@@ -5,7 +5,7 @@
       <div class="content" >
         <van-pull-refresh v-model="isLoading" @refresh="onRefresh">
          <div class="other"></div>
-          <div class="list-wrap">
+          <div class="list-wrap" ref='listWrapRef'>
             <van-sticky :offset-top="60">
               <ul class="tab-wrap">
                 <li
@@ -16,7 +16,7 @@
                 >{{ item.name }}</li>
               </ul>
             </van-sticky>
-         <PullChange :disabled="disabled"  @refresh="nextTab">
+         <PullChange :disabled="disabled" @update="updateText"  @refresh="nextTab">
 
             <van-list v-model="currentList.loading" :finished="currentList.finished" :finished-text="currentList.finishedText" @load="onLoad">
               <van-cell v-for="item in currentList.list" :key="item" :title="item" />
@@ -37,19 +37,24 @@ import Vue from 'vue'
 import PullChange from '@/components/pull-change/index'
 import { PullRefresh, Toast, List, Cell, Sticky } from 'vant'
 import { on, off } from '@/helpers/event'
+import { getRect } from '@/helpers/dom'
 
 Vue.use(PullRefresh)
 Vue.use(Toast)
 Vue.use(List)
 Vue.use(Cell)
 Vue.use(Sticky)
+
+const PULLING_TEXT = '继续上拉切换下一个促销场次'
+const LOOSING_TEXT = '释放切换下一个促销场'
+const NO_MORE_DATA_TEXT = '没有更多商品了'
 const dataTab = [
   {
     name: '特价',
     finished: false,
     loading: false,
     list: [],
-    finishedText: '继续上拉切换下一个促销场次',
+    finishedText: PULLING_TEXT,
     pos: 0
   },
   {
@@ -57,7 +62,7 @@ const dataTab = [
     finished: false,
     loading: false,
     list: [],
-    finishedText: '继续上拉切换下一个促销场次',
+    finishedText: PULLING_TEXT,
     pos: 0
   },
   {
@@ -65,7 +70,7 @@ const dataTab = [
     finished: false,
     loading: false,
     list: [],
-    finishedText: '继续上拉切换下一个促销场次',
+    finishedText: PULLING_TEXT,
     pos: 0
   },
   {
@@ -73,7 +78,7 @@ const dataTab = [
     finished: false,
     loading: false,
     list: [],
-    finishedText: '没有更多商品了',
+    finishedText: NO_MORE_DATA_TEXT,
     pos: 0
   }
 ]
@@ -104,30 +109,37 @@ export default {
   mounted () {
     this.scroller = this.$refs.scrollRef
     this.bindEvent()
+    console.log(this.listWrapOffsetTop)
   },
   watch: {
+    // 切换tab的时候保存滚动值
     currentIndex (newTab, oldTab) {
       this.list[oldTab].pos = this.scrollY // 储存旧的scrollY
-      // const memoryPos = this.tabProductData[newTab].pos
-      // let keyPos
-      // if (this.scrollY >= offsetTop) {
-      //   keyPos = Math.max(memoryPos, offsetTop)
-      // } else {
-      //   keyPos = this.scrollY
-      // }
+      const offsetTop = this.listWrapOffsetTop
+      const memoryPos = this.list[newTab].pos
+      let keyPos
+      if (this.scrollY >= offsetTop) {
+        keyPos = Math.max(memoryPos, offsetTop)
+      } else {
+        keyPos = this.scrollY
+      }
+      this.scroller.scrollTo(0, keyPos)
     }
   },
   computed: {
+    listWrapOffsetTop () {
+      return getRect(this.$refs.listWrapRef).top
+    },
     currentList () {
       return this.list[this.currentIndex]
     },
     disabled () {
-      return !this.currentList.finished
+      return !this.currentList.finished && this.currentList.loading
     }
   },
   methods: {
     scrollFn () {
-      // console.log(this.scroller.scrollTop)
+      this.scrollY = this.scroller.scrollTop
     },
     bindEvent () {
       console.log(this.scroller)
@@ -161,8 +173,17 @@ export default {
         }
       }, 1000)
     },
+    updateText (isUpdate) {
+      if (this.currentIndex === this.list.length - 1) return
+      if (isUpdate) {
+        this.currentList.finishedText = LOOSING_TEXT
+      } else {
+        this.currentList.finishedText = PULLING_TEXT
+      }
+    },
     nextTab () {
-
+      if (this.currentIndex === this.list.length - 1) return
+      this.currentIndex++
     },
     tabChange (index) {
       this.currentIndex = index

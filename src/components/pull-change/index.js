@@ -49,25 +49,28 @@ export default {
   },
   methods: {
     check () {
-      const { $el: el, scroller } = this
-
-      let scrollerRect
-      if (scroller.getBoundingClientRect) {
-        scrollerRect = scroller.getBoundingClientRect()
-      } else {
-        scrollerRect = {
-          top: 0,
-          bottom: scroller.innerHeight
+      this.$nextTick(() => {
+        console.log(this.disabled)
+        if (this.disabled) return
+        const { $el: el, scroller } = this
+        let scrollerRect
+        if (scroller.getBoundingClientRect) {
+          scrollerRect = scroller.getBoundingClientRect()
+        } else {
+          scrollerRect = {
+            top: 0,
+            bottom: scroller.innerHeight
+          }
         }
-      }
-      const scrollerHeight = scrollerRect.bottom - scrollerRect.top
+        const scrollerHeight = scrollerRect.bottom - scrollerRect.top
 
-      if (!scrollerHeight || isHidden(el)) {
-        return false
-      }
-      const bottomRect = this.$refs.bottom.getBoundingClientRect()
+        if (!scrollerHeight || isHidden(el)) {
+          return false
+        }
+        const bottomRect = this.$refs.bottom.getBoundingClientRect()
 
-      this.isReachEdge = bottomRect.bottom === scrollerRect.bottom
+        this.isReachEdge = bottomRect.bottom === scrollerRect.bottom
+      })
     },
     ease (distance) {
       const pullDistance = this.offset
@@ -84,6 +87,7 @@ export default {
     },
     setStatus (distance) {
       this.distance = distance
+      console.log(distance, this.offset)
       this.status = distance < this.offset
         ? 'pulling'
         : 'loosing'
@@ -113,6 +117,10 @@ export default {
         preventDefault(event)
 
         this.setStatus(this.ease(-this.deltaY))
+
+        this.$nextTick(() => {
+          this.$emit('update', this.status === 'loosing')
+        })
       }
     },
     onTouchEnd (event) {
@@ -123,6 +131,7 @@ export default {
           this.setStatus(0)
           // ensure value change can be watched
           this.$nextTick(() => {
+            this.$emit('update', false)
             this.$emit('refresh')
           })
         } else {
