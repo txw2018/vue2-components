@@ -16,7 +16,7 @@
                 >{{ item.name }}</li>
               </ul>
             </van-sticky>
-         <PullChange :disabled="disabled" @update="updateText"  @refresh="nextTab">
+         <PullChange :disabled="disabled" @update="updateText"  @refresh="nextTab" :data="currentList.list">
 
             <van-list v-model="currentList.loading" :finished="currentList.finished" :finished-text="currentList.finishedText" @load="onLoad">
               <van-cell v-for="item in currentList.list" :key="item" :title="item" />
@@ -134,7 +134,7 @@ export default {
       return this.list[this.currentIndex]
     },
     disabled () {
-      return !this.currentList.finished && this.currentList.loading
+      return !this.currentList.finished
     }
   },
   methods: {
@@ -169,7 +169,9 @@ export default {
 
         // 数据全部加载完成
         if (currentList.list.length >= 40) {
-          currentList.finished = true
+          setTimeout(() => {
+            currentList.finished = true
+          }, 800)
         }
       }, 1000)
     },

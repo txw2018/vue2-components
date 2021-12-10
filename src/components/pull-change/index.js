@@ -21,6 +21,9 @@ export default {
     animationDuration: {
       type: [Number, String],
       default: 300
+    },
+    data: {
+      type: Array
     }
 
   },
@@ -37,6 +40,9 @@ export default {
     }
     this.bindEvent()
     this.bindTouchEvent(this.$refs.track)
+    const node = this.$refs.bottom
+    this.observer = new IntersectionObserver(this.insideViewportCb)
+    this.observer.observe(node)
   },
   activatedk () {
     this.bindEvent()
@@ -47,30 +53,45 @@ export default {
   beforeDestory () {
     this.unBindEvent()
   },
+  watch: {
+    data () {
+      this.setStatus(0)
+    }
+  },
   methods: {
-    check () {
-      this.$nextTick(() => {
-        console.log(this.disabled)
-        if (this.disabled) return
-        const { $el: el, scroller } = this
-        let scrollerRect
-        if (scroller.getBoundingClientRect) {
-          scrollerRect = scroller.getBoundingClientRect()
+    insideViewportCb (entries) {
+      entries.forEach(element => {
+        // 在viewport里面
+        if (element.intersectionRatio > 0) {
+          console.log(123)
+          this.isReachEdge = true
         } else {
-          scrollerRect = {
-            top: 0,
-            bottom: scroller.innerHeight
-          }
+          this.isReachEdge = false
         }
-        const scrollerHeight = scrollerRect.bottom - scrollerRect.top
-
-        if (!scrollerHeight || isHidden(el)) {
-          return false
-        }
-        const bottomRect = this.$refs.bottom.getBoundingClientRect()
-
-        this.isReachEdge = bottomRect.bottom === scrollerRect.bottom
       })
+    },
+    check () {
+      // this.$nextTick(() => {
+      //   if (this.disabled || !this.$refs.bottom) return
+      //   const { $el: el, scroller } = this
+      //   let scrollerRect
+      //   if (scroller.getBoundingClientRect) {
+      //     scrollerRect = scroller.getBoundingClientRect()
+      //   } else {
+      //     scrollerRect = {
+      //       top: 0,
+      //       bottom: scroller.innerHeight
+      //     }
+      //   }
+      //   const scrollerHeight = scrollerRect.bottom - scrollerRect.top
+
+      //   if (!scrollerHeight || isHidden(el)) {
+      //     return false
+      //   }
+      //   const bottomRect = this.$refs.bottom.getBoundingClientRect()
+
+      //   this.isReachEdge = bottomRect.bottom === scrollerRect.bottom
+      // })
     },
     ease (distance) {
       const pullDistance = this.offset
@@ -113,7 +134,7 @@ export default {
       }
 
       this.touchMove(event)
-      if (this.isReachEdge && this.deltaY <= 0 && this.direction === 'vertical') {
+      if (this.isReachEdge && !this.disabled && this.deltaY <= 0 && this.direction === 'vertical') {
         preventDefault(event)
 
         this.setStatus(this.ease(-this.deltaY))
@@ -147,6 +168,11 @@ export default {
     },
     genStatus () {
       return <div>{this.status === 'loosing' ? '松开切换' : '继续上拉'}</div>
+    },
+    genBottom () {
+      if (!this.disabled) {
+        return <div ref='bottom' class="bottom"></div>
+      }
     }
   },
   render () {
@@ -158,8 +184,8 @@ export default {
       <div class="wrapper">
         <div ref='track' class='track' style={trackStyle}>
           {this.$slots.default}
-          <div ref='bottom' class="bottom">
-          </div>
+          {/* {this.genBottom()} */}
+          <div ref='bottom' class="bottom"></div>
         </div>
       </div>
     )
