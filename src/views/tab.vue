@@ -4,9 +4,11 @@
     <section ref="scrollRef">
       <div class="content" >
         <van-pull-refresh v-model="isLoading" @refresh="onRefresh">
+          <PullChange :disabled="disabled" @update="updateText"  @refresh="nextTab" :data="currentList.list">
+
          <div class="other"></div>
           <div class="list-wrap" ref='listWrapRef'>
-            <van-sticky :offset-top="60">
+            <div class="sticky" style="top:300px">
               <ul class="tab-wrap">
                 <li
                   :class="{ active: index === currentIndex }"
@@ -15,15 +17,13 @@
                   @click="tabChange(index)"
                 >{{ item.name }}</li>
               </ul>
-            </van-sticky>
-         <PullChange :disabled="disabled" @update="updateText"  @refresh="nextTab" :data="currentList.list">
+            </div>
 
-            <van-list v-model="currentList.loading" :finished="currentList.finished" :finished-text="currentList.finishedText" @load="onLoad">
-              <van-cell v-for="item in currentList.list" :key="item" :title="item" />
-            </van-list>
-         </PullChange>
-
+              <van-list v-model="currentList.loading" :finished="currentList.finished" :finished-text="currentList.finishedText" @load="onLoad">
+                <van-cell v-for="item in currentList.list" :key="item" :title="item" />
+              </van-list>
           </div>
+           </PullChange>
         </van-pull-refresh>
       </div>
     </section>
@@ -100,14 +100,22 @@ export default {
   },
   created () {
     this.list = dataTab
-    this.list.forEach((item) => {
+    this.list.forEach((item, index) => {
       for (let i = 0; i < 20; i++) {
-        item.list.push(item.list.length + 1 + item.name)
+        if (index === 0) {
+          if (i < 3) {
+            item.list.push(item.list.length + 1 + item.name)
+          } else {
+            item.finished = true
+            break
+          }
+        } else {
+          item.list.push(item.list.length + 1 + item.name)
+        }
       }
     })
   },
   mounted () {
-    this.scroller = this.$refs.scrollRef
     this.bindEvent()
     console.log(this.listWrapOffsetTop)
   },
@@ -142,6 +150,7 @@ export default {
       this.scrollY = this.scroller.scrollTop
     },
     bindEvent () {
+      this.scroller = this.$refs.scrollRef
       console.log(this.scroller)
       on(this.scroller, 'scroll', this.scrollFn)
     },
@@ -157,10 +166,12 @@ export default {
     },
     onLoad () {
       const currentList = this.list[this.currentIndex]
+      if (currentList.finished) return
       setTimeout(() => {
         if (currentList.finished === true) return
 
         for (let i = 0; i < 10; i++) {
+          if (currentList.name === '特价') return
           currentList.list.push(currentList.list.length + 1 + currentList.name)
         }
 
@@ -173,7 +184,7 @@ export default {
             currentList.finished = true
           }, 800)
         }
-      }, 1000)
+      }, 2000)
     },
     updateText (isUpdate) {
       if (this.currentIndex === this.list.length - 1) return
@@ -213,6 +224,9 @@ export default {
       background: blue;
     }
     .list-wrap {
+      .sticky{
+        position: sticky;
+      }
       li {
         width: 25%;
         text-align: center;

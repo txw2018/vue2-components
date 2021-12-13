@@ -1,7 +1,7 @@
 
 import { TouchMixin } from '@/mixins/touch'
 import { on, off, preventDefault } from '@/helpers/event'
-import { getScroller, isHidden } from '@/helpers/dom'
+import { getScroller } from '@/helpers/dom'
 import './index.scss'
 
 const OFFSET_HEIGHT = 50
@@ -63,35 +63,39 @@ export default {
       entries.forEach(element => {
         // 在viewport里面
         if (element.intersectionRatio > 0) {
-          console.log(123)
           this.isReachEdge = true
         } else {
           this.isReachEdge = false
         }
       })
     },
-    check () {
-      // this.$nextTick(() => {
-      //   if (this.disabled || !this.$refs.bottom) return
-      //   const { $el: el, scroller } = this
-      //   let scrollerRect
-      //   if (scroller.getBoundingClientRect) {
-      //     scrollerRect = scroller.getBoundingClientRect()
-      //   } else {
-      //     scrollerRect = {
-      //       top: 0,
-      //       bottom: scroller.innerHeight
-      //     }
-      //   }
-      //   const scrollerHeight = scrollerRect.bottom - scrollerRect.top
+    // check () {
+    // this.$nextTick(() => {
+    //   if (this.disabled || !this.$refs.bottom) return
+    //   const { $el: el, scroller } = this
+    //   let scrollerRect
+    //   if (scroller.getBoundingClientRect) {
+    //     scrollerRect = scroller.getBoundingClientRect()
+    //   } else {
+    //     scrollerRect = {
+    //       top: 0,
+    //       bottom: scroller.innerHeight
+    //     }
+    //   }
+    //   const scrollerHeight = scrollerRect.bottom - scrollerRect.top
 
-      //   if (!scrollerHeight || isHidden(el)) {
-      //     return false
-      //   }
-      //   const bottomRect = this.$refs.bottom.getBoundingClientRect()
+    //   if (!scrollerHeight || isHidden(el)) {
+    //     return false
+    //   }
+    //   const bottomRect = this.$refs.bottom.getBoundingClientRect()
 
-      //   this.isReachEdge = bottomRect.bottom === scrollerRect.bottom
-      // })
+    //   this.isReachEdge = bottomRect.bottom === scrollerRect.bottom
+    // })
+    // },
+    bindObserver () {
+      const node = this.$refs.bottom
+      this.observer = new IntersectionObserver(this.insideViewportCb)
+      this.observer.observe(node)
     },
     ease (distance) {
       const pullDistance = this.offset
@@ -161,7 +165,7 @@ export default {
       }
     },
     bindEvent () {
-      on(this.scroller, 'scroll', this.check)
+      on(this.scroller, 'scroll', this.bindObserver)
     },
     unBindEvent () {
       off(this.scroller, 'scroll')
