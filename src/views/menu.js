@@ -14,7 +14,7 @@ export default {
     return (
         <div style="height:50px;line-height:50px">
           {childrenRoutes.map((route) => {
-            return <router-link to={route}>{route.slice(1)}</router-link>
+            return <router-link tag="div" to={route}>{route.slice(1)}</router-link>
           })}
         </div>
     )
