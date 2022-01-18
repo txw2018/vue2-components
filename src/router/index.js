@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+import Menu from '@/views/menu'
+
 const childrenRoutes = []
 const pages = require.context('../components', true, /\.vue$/)
 pages.keys().forEach(page => {
@@ -22,14 +23,18 @@ Vue.use(VueRouter)
 let flag = true
 const routes = [
   {
-    path: '/',
-    name: 'Home',
-    component: Home
+    path: '/menu',
+    name: 'menu',
+    component: Menu
   },
   {
     path: '/tab',
     name: 'tab',
     component: () => import(/* webpackChunkName: "about" */ '../views/tab.vue')
+  },
+  {
+    path: '*',
+    redirect: '/menu'
   }
 ]
 const router = new VueRouter({

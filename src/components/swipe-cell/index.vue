@@ -2,17 +2,28 @@
 import { TouchMixin } from '@/mixins/touch'
 import { preventDefault } from '@/helpers/event'
 import { range } from '@/helpers/format/number'
+import { ClickOutsideMixin } from '@/mixins/click-outside'
 
 const THRESHOLD = 0.15
 export default {
   mixins: [
-    TouchMixin
+    TouchMixin,
+    ClickOutsideMixin({
+      event: 'touchstart',
+      method: 'onClick'
+    })
   ],
   props: {
+    onClose: Function,
+    disabled: Boolean,
     leftWidth: [Number, String],
     rightWidth: [Number, String],
     beforeClose: Function,
-    onClose: Function
+    stopPropagation: Boolean,
+    name: {
+      type: [Number, String],
+      default: ''
+    }
   },
   data () {
     return {
@@ -150,7 +161,7 @@ export default {
       ) {
         this.open('left')
       } else {
-        this.close()
+        this.close(direction)
       }
     },
     open (position) {
@@ -159,11 +170,15 @@ export default {
       this.opened = true
       this.offset = offset
     },
-    close () {
+    close (position) {
       this.offset = 0
 
       if (this.opened) {
         this.opened = false
+        this.$emit('close', {
+          position,
+          name: this.name
+        })
       }
     }
   },
@@ -173,7 +188,7 @@ export default {
       transitionDuration: this.dragging ? '0s' : '0.6s'
     }
     return (
-      <div class="swipe-cell">
+      <div class="swipe-cell" onClick={this.getClickHandler('cell')}>
         <div class="swipe-cell__wrapper" style={wrapperStyle}>
           {this.genLeftPart()}
           {this.$slots.default}
