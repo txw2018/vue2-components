@@ -29,7 +29,22 @@ export default {
       default: true
     }
   },
+  beforeCreate () {
+    const createEmitter = eventName => event => this.$emit(eventName, event)
+    this.onClick = createEmitter('click')
+    this.onOpened = createEmitter('opened')
+    this.onClosed = createEmitter('closed')
+  },
+  methods: {
+    onClickCloseIcon (event) {
+      this.$emit('click-close-icon', event)
+      this.close()
+    }
+  },
   render () {
+    if (this.shouldRender) {
+      return
+    }
     const { round, position, duration } = this
     const isCenter = position === 'center'
 
@@ -58,7 +73,15 @@ export default {
                   [position]: position,
                   'safe-area-inset-bottom': this.safeAreaInsetBottom
                 }}
+                onClick={this.onClick}
               >
+              {this.$slots.default}
+              {this.closeable && (
+                <i
+                  class={`close-icon ${this.closeIconPosition}`}
+                  onClick={this.onClickCloseIcon}
+                >X</i>
+              )}
               </div>
             </transition>
     )

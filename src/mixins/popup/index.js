@@ -1,4 +1,10 @@
 import { TouchMixin } from '../touch'
+import {
+  openOverlay,
+  closeOverlay,
+  updateOverlay,
+  removeOverlay
+} from './overlay'
 export const popupMixinProps = {
   // Initial rendering animation
   transitionAppear: Boolean,
@@ -46,6 +52,41 @@ export function PopupMixin (options = {}) {
     computed: {
       shouldRender () {
         return this.inited || !this.lazyRender
+      }
+    },
+    watch: {
+      value (val) {
+        const type = val ? 'open' : 'close'
+        this.inited = this.inited || this.value
+        this[type]()
+
+        if (!options.skipToggleEvent) {
+          this.$emit(type)
+        }
+      },
+
+      overlay: 'renderOverlay'
+    },
+    mounted () {
+      if (this.value) {
+        this.open()
+      }
+    },
+    activated () {
+      if (this.shouldReopen) {
+        this.$emit('input', true)
+        this.shouldReopen = false
+      }
+    },
+    beforeDestroy () {
+      removeOverlay(this)
+
+      if (this.opened) {
+        this.removeLock()
+      }
+
+      if (this.getContainer) {
+        removeNode(this.$el)
       }
     }
   }
