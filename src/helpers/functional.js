@@ -17,6 +17,7 @@ export function inherit (
   context,
   inheritListeners
 ) {
+  console.log(context)
   const result = inheritKey.reduce((obj, key) => {
     if (context.data[key]) {
       obj[mapInheritKey[key] || key] = context.data[key]
