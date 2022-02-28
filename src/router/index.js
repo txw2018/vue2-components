@@ -15,7 +15,6 @@ pages.keys().forEach(page => {
       name: pageName,
       component: () => import(`@/components/${pageName}/demo/index.vue`)
     })
-    console.log(module)
   }
 })
 
@@ -26,11 +25,6 @@ const routes = [
     path: '/menu',
     name: 'menu',
     component: Menu
-  },
-  {
-    path: '/tab',
-    name: 'tab',
-    component: () => import(/* webpackChunkName: "about" */ '../views/tab.vue')
   },
   {
     path: '*',
