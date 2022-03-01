@@ -65,6 +65,7 @@ export default {
           if (this.clickStatus) {
             i = this.clickIndex
           }
+          this.clickStatus = false
           this.active = i
           break
         }
