@@ -41,6 +41,7 @@ export default {
   },
   created () {
     this.listHeight = []
+    this.clickStatus = false
   },
   methods: {
     genCard (value) {
@@ -48,6 +49,7 @@ export default {
     },
     changeTab (index) {
       this.clickIndex = index
+      this.clickStatus = true
       this.scrollTo(index)
     },
     scrollTo (index) {
@@ -60,7 +62,9 @@ export default {
         const height1 = this.listHeight[i]
         const height2 = this.listHeight[i + 1]
         if (scrollTop >= height1 && scrollTop < height2) {
-          i = this.clickIndex
+          if (this.clickStatus) {
+            i = this.clickIndex
+          }
           this.active = i
           break
         }
