@@ -1,5 +1,5 @@
-function createData (title) {
-  return new Array(10).fill(title)
+function createData (title, count = 10) {
+  return new Array(count).fill(title)
 }
 export default [
   {
@@ -20,6 +20,6 @@ export default [
   },
   {
     title: '满赠',
-    list: createData('满赠')
+    list: createData('满赠', 3)
   }
 ]

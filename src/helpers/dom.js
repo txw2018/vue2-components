@@ -35,6 +35,19 @@ export function getScrollTop (el) {
   return Math.max(top, 0)
 }
 
+export function setScrollTop (el, value) {
+  if ('scrollTop' in el) {
+    el.scrollTop = value
+  } else {
+    el.scrollTo(el.scrollX, value)
+  }
+}
+
+export function setRootScrollTop (value) {
+  setScrollTop(window, value)
+  setScrollTop(document.body, value)
+}
+
 export function isHidden (el) {
   const style = window.getComputedStyle(el)
   const hidden = style.display === 'none'

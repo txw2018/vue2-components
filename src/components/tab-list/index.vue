@@ -1,4 +1,6 @@
 <script>
+import { getScroller, getScrollTop, setScrollTop } from '@/helpers/dom'
+import { BindEventMixin } from '@/mixins/bind-event'
 export default {
   name: 'tab-list',
   props: {
@@ -7,24 +9,72 @@ export default {
       default: () => ([])
     }
   },
+  mixins: [
+    BindEventMixin(function (bind) {
+      if (!this.scroller) {
+        this.scroller = getScroller(this.$el)
+      }
+
+      bind(this.scroller, 'scroll', this.onScroll)
+    })
+  ],
   data () {
     return {
       data: this.value,
-      active: 0
+      active: 0,
+      clickIndex: 0
     }
   },
   watch: {
-    value (newVal) {
-      this.data = newVal
-      console.log(123)
+    value: {
+      immediate: true,
+      handler (newVal) {
+        this.data = newVal
+        this.$nextTick(() => {
+          this.calculateHeight()
+        })
+      }
+    },
+    clickIndex (newVal) {
+      this.active = newVal
     }
+  },
+  created () {
+    this.listHeight = []
   },
   methods: {
     genCard (value) {
       return <div class="card">{ value }</div>
     },
     changeTab (index) {
-      this.active = index
+      this.clickIndex = index
+      this.scrollTo(index)
+    },
+    scrollTo (index) {
+      setScrollTop(this.scroller, this.listHeight[index])
+    },
+    onScroll () {
+      const childrenArr = [...this.$refs.listRef.children]
+      const scrollTop = getScrollTop(this.scroller)
+      for (let i = 0; i < childrenArr.length; i++) {
+        const height1 = this.listHeight[i]
+        const height2 = this.listHeight[i + 1]
+        if (scrollTop >= height1 && scrollTop < height2) {
+          i = this.clickIndex
+          this.active = i
+          break
+        }
+      }
+    },
+    calculateHeight () {
+      let height = 0
+      this.listHeight.push(height)
+      const childrenArr = [...this.$refs.listRef.children]
+      for (let i = 0; i < childrenArr.length; i++) {
+        height += childrenArr[i].clientHeight
+        this.listHeight.push(height)
+      }
+      console.log(this.listHeight)
     }
   },
   render () {
@@ -83,6 +133,9 @@ export default {
       display: flex;
       justify-content: center;
       align-items: center;
+        &:first-child{
+        color: red;
+      }
     }
   }
 }
